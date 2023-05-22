@@ -2,97 +2,49 @@ const CompressionWebpackPlugin = require('compression-webpack-plugin')
 const VueFilenameInjector = require('@d2-projects/vue-filename-injector')
 const ThemeColorReplacer = require('webpack-theme-color-replacer')
 const forElementUI = require('webpack-theme-color-replacer/forElementUI')
-const { set, each, compact, map, keys } = require('lodash')
+const cdnDependencies = require('./dependencies-cdn')
+const { chain, set, each } = require('lodash')
 
+// 拼接路径
 const resolve = dir => require('path').join(__dirname, dir)
 
-// Add environment variable
+// 增加环境变量
 process.env.VUE_APP_VERSION = require('./package.json').version
 process.env.VUE_APP_BUILD_TIME = require('dayjs')().format('YYYY-M-D HH:mm:ss')
 
-// Build configuration for multiple pages
-const pages = {
-  index: {
-    entry: 'src/main.js',
-    template: 'public/index.html',
-    filename: 'index.html',
-    chunks: [
-      'manifest',
-      'index',
-      'chunk-index',
-      'chunk-vendor',
-      'chunk-common',
-      'chunk-vue',
-      'chunk-element'
-    ]
-  },
-  mobile: {
-    entry: 'src.mobile/main.js',
-    template: 'public/mobile.html',
-    filename: 'mobile.html',
-    chunks: [
-      'manifest',
-      'mobile',
-      'chunk-mobile',
-      'chunk-vendor',
-      'chunk-common',
-      'chunk-vue'
-    ]
-  }
-}
+// 基础路径 注意发布之前要先修改这里
+const publicPath = process.env.VUE_APP_PUBLIC_PATH || '/'
 
-// Set up the external dependency package introduced by the method of using CDN
-// For example
-// if you set the Axios related link configuration here
-// Axios will no longer participate in the packaging during the construction. Finally
-// the external link you configured will be used to import Axios in the build result
-const cdn = {
-  // Which external dependencies related to index page are introduced in the form of CDN links
-  index: [
-    // {
-    //   name: 'axios',
-    //   library: 'axios',
-    //   js: 'https://cdn.jsdelivr.net/npm/axios@0.19.0/dist/axios.min.js',
-    //   css: ''
-    // }
-  ],
-  // Which external dependencies related to mobile page are introduced in the form of CDN links
-  mobile: [
-    // {
-    //   name: 'axios',
-    //   library: 'axios',
-    //   js: 'https://cdn.jsdelivr.net/npm/axios@0.19.0/dist/axios.min.js',
-    //   css: ''
-    // }
-  ]
-}
-
-// Set external dependent packages that do not participate in the build
+// 设置不参与构建的库
 const externals = {}
-keys(pages).forEach(name => {
-  cdn[name].forEach(p => {
-    externals[p.name] = p.library
-  })
-})
+cdnDependencies.forEach(pkg => { externals[pkg.name] = pkg.library })
+
+// 引入文件的 cdn 链接
+const cdn = {
+  css: cdnDependencies.map(e => e.css).filter(e => e),
+  js: cdnDependencies.map(e => e.js).filter(e => e)
+}
+
+// 多页配置，默认未开启，如需要请参考 https://cli.vuejs.org/zh/config/#pages
+const pages = undefined
+// const pages = {
+//   index: './src/main.js',
+//   subpage: './src/subpage.js'
+// }
 
 module.exports = {
-  publicPath: process.env.VUE_APP_PUBLIC_PATH || '/',
+  // 根据你的实际情况更改这里
+  publicPath,
   lintOnSave: true,
   devServer: {
-    publicPath: process.env.VUE_APP_PUBLIC_PATH || '/',
-    disableHostCheck: process.env.NODE_ENV === 'development'
+    publicPath, // 和 publicPath 保持一致
+    disableHostCheck: process.env.NODE_ENV === 'development' // 关闭 host check，方便使用 ngrok 之类的内网转发工具
   },
   css: {
     loaderOptions: {
+      // 设置 scss 公用变量文件
       sass: {
-        additionalData: '@use "@/assets/style/public.scss" as *;'
-      },
-      less: {
-        lessOptions: {
-          modifyVars: {
-            blue: '#2262AB'
-          }
-        }
+        prependData: '@import \'~@/assets/style/public.scss\';'
       }
     }
   },
@@ -114,92 +66,33 @@ module.exports = {
     }
     return configNew
   },
-  // default: https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-service/lib/config/base.js
+  // 默认设置: https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-service/lib/config/base.js
   chainWebpack: config => {
-    config.optimization.runtimeChunk({
-      name: 'manifest'
-    })
-    config.optimization.splitChunks({
-      cacheGroups: {
-        // External dependencies common to all pages
-        libs: {
-          name: 'chunk-vendor',
-          chunks: 'initial',
-          minChunks: 1,
-          test: /[\\/]node_modules[\\/]/,
-          priority: 1,
-          reuseExistingChunk: true,
-          enforce: true
-        },
-        // Code common to all pages
-        common: {
-          name: 'chunk-common',
-          chunks: 'initial',
-          minChunks: 2,
-          maxInitialRequests: 5,
-          minSize: 0,
-          priority: 2,
-          reuseExistingChunk: true,
-          enforce: true
-        },
-        // External dependencies that are only used by the index page
-        index: {
-          name: 'chunk-index',
-          chunks: 'all',
-          minChunks: 1,
-          test: /[\\/]node_modules[\\/](sortablejs|screenfull|nprogress|hotkeys-js|fuse\.js|better-scroll|lowdb|shortid)[\\/]/,
-          priority: 3,
-          reuseExistingChunk: true,
-          enforce: true
-        },
-        // External dependencies that are only used by the mobile page
-        mobile: {
-          name: 'chunk-mobile',
-          chunks: 'all',
-          minChunks: 1,
-          test: /[\\/]node_modules[\\/](vant)[\\/]/,
-          priority: 3,
-          reuseExistingChunk: true,
-          enforce: true
-        },
-        // Vue family packages
-        vue: {
-          name: 'chunk-vue',
-          test: /[\\/]node_modules[\\/](vue|vue-router|vuex)[\\/]/,
-          chunks: 'all',
-          priority: 3,
-          reuseExistingChunk: true,
-          enforce: true
-        },
-        // only element-ui
-        element: {
-          name: 'chunk-element',
-          test: /[\\/]node_modules[\\/]element-ui[\\/]/,
-          chunks: 'all',
-          priority: 3,
-          reuseExistingChunk: true,
-          enforce: true
-        }
-      }
-    })
-    // Add the CDN settings to the settings of the htmlwebpackplugin plug-in
-    keys(pages).forEach(name => {
-      const packages = cdn[name]
-      config.plugin(`html-${name}`).tap(options => {
-        const setting = {
-          css: compact(map(packages, 'css')),
-          js: compact(map(packages, 'js'))
-        }
-        set(options, '[0].cdn', process.env.NODE_ENV === 'production' ? setting : [])
+    /**
+     * 添加 CDN 参数到 htmlWebpackPlugin 配置中
+     * 已适配多页
+     */
+    const htmlPluginNames = chain(pages).keys().map(page => 'html-' + page).value()
+    const targetHtmlPluginNames = htmlPluginNames.length ? htmlPluginNames : ['html']
+    each(targetHtmlPluginNames, name => {
+      config.plugin(name).tap(options => {
+        set(options, '[0].cdn', process.env.NODE_ENV === 'production' ? cdn : [])
         return options
       })
     })
-    // Remove prefetch preload settings for lazy load modules
-    each(keys(pages), name => {
-      config.plugins.delete(`prefetch-${name}`)
-      config.plugins.delete(`preload-${name}`)
-    })
-    // webpack-theme-color-replacer
+
+    /**
+     * 删除懒加载模块的 prefetch preload，降低带宽压力
+     * https://cli.vuejs.org/zh/guide/html-and-static-assets.html#prefetch
+     * https://cli.vuejs.org/zh/guide/html-and-static-assets.html#preload
+     * 而且预渲染时生成的 prefetch 标签是 modern 版本的，低版本浏览器是不需要的
+     */
+    config.plugins
+      .delete('prefetch')
+      .delete('preload')
+    // 解决 cli3 热更新失效 https://github.com/vuejs/vue-cli/issues/1559
+    config.resolve
+      .symlinks(true)
     config
       .plugin('theme-color-replacer')
       .use(ThemeColorReplacer, [{
@@ -211,11 +104,11 @@ module.exports = {
         changeSelector: forElementUI.changeSelector
       }])
     config
-      // The development environment sourcemap does not contain column information
+      // 开发环境 sourcemap 不包含列信息
       .when(process.env.NODE_ENV === 'development',
         config => config.devtool('cheap-source-map')
       )
-      // Add file name
+      // 预览环境构建 vue-loader 添加 filename
       .when(
         process.env.VUE_APP_SCOURCE_LINK === 'TRUE',
         config => VueFilenameInjector(config, {
@@ -249,9 +142,15 @@ module.exports = {
       .exclude
       .add(resolve('src/assets/svg-icons/icons'))
       .end()
-    // set alias
+    // 重新设置 alias
     config.resolve.alias
-      .set('@.mobile', resolve('src.mobile'))
+      .set('@api', resolve('src/api'))
+    // 分析工具
+    if (process.env.npm_config_report) {
+      config
+        .plugin('webpack-bundle-analyzer')
+        .use(require('webpack-bundle-analyzer').BundleAnalyzerPlugin)
+    }
   },
   // 不输出 map 文件
   productionSourceMap: false,

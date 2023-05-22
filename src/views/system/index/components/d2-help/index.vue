@@ -14,15 +14,15 @@
           这里有一些参考资料
         </h2>
         <el-button-group>
-          <el-button @click="$open('https://d2.pub/zh/doc/d2-admin')">
+          <el-button @click="$open('https://d2.pub/zh/doc/Neuro-Network')">
             <d2-icon name="book" class="d2-mr-5"/>
             文档
           </el-button>
-          <el-button @click="$open('https://github.com/d2-projects/d2-admin/issues?q=is%3Aissue+is%3Aclosed')">
+          <el-button @click="$open('https://github.com/d2-projects/Neuro-Network/issues?q=is%3Aissue+is%3Aclosed')">
             <d2-icon name="question" class="d2-mr-5"/>
             历史提问
           </el-button>
-          <el-button @click="$open('https://github.com/d2-projects/d2-admin/issues/new/choose')">
+          <el-button @click="$open('https://github.com/d2-projects/Neuro-Network/issues/new/choose')">
             <d2-icon name="plus" class="d2-mr-5"/>
             提交问题
           </el-button>

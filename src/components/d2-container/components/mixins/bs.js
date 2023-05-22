@@ -1,6 +1,4 @@
-import { merge } from 'lodash'
 import BScroll from 'better-scroll'
-
 export default {
   props: {
     // 滚动优化的选项
@@ -24,7 +22,7 @@ export default {
   methods: {
     scrollInit () {
       // 初始化 bs
-      this.BS = new BScroll(this.$refs.wrapper, merge({
+      this.BS = new BScroll(this.$refs.wrapper, Object.assign({
         mouseWheel: true,
         click: true,
         scrollbar: {
@@ -39,7 +37,7 @@ export default {
       }))
     },
     scrollDestroy () {
-      // https://github.com/d2-projects/d2-admin/issues/75
+      // https://github.com/d2-projects/Neuro-Network/issues/75
       try {
         this.BS.destroy()
       } catch (e) {
