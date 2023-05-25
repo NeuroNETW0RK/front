@@ -166,6 +166,7 @@
     b {
       color: #4073c9;
       font-size: 2em;
+      font-weight: 300;
     }
     p {
       font-size: 0.8em;
