@@ -1,12 +1,12 @@
 <template>
   <d2-container>
-    <template slot="header">Page 3 header</template>
+    <template slot="header">Page 1 header</template>
     Hello World
   </d2-container>
 </template>
 
 <script>
 export default {
-  name: 'page3'
+  name: 'modelTrainer'
 }
 </script>

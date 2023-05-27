@@ -7,6 +7,6 @@
 
 <script>
 export default {
-  name: 'page2'
+  name: 'developEnv'
 }
 </script>

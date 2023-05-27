@@ -21,19 +21,19 @@ export const menuAside = supplementPath([{
   title: '总览',
   icon: 'home'
 }, {
-  path: '/data',
+  path: '/data-center',
   title: '数据中心',
   icon: 'database'
 }, {
-  path: '/model',
+  path: '',
   title: '模型训练',
   icon: 'film',
   children: [{
-    path: '/page1',
+    path: 'model-trainer',
     title: '训练管理',
     icon: 'film'
   }, {
-    path: '/page2',
+    path: '/develop-env',
     title: '开发环境',
     icon: 'film'
   }]
