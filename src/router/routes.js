@@ -40,6 +40,15 @@ const frameIn = [
         },
         component: _import('trainer/develop')
       },
+      {
+        path: 'image',
+        name: 'image',
+        meta: {
+          title: '镜像管理',
+          auth: true
+        },
+        component: _import('image')
+      },
       // 系统 前端日志
       {
         path: 'log',

@@ -8,7 +8,8 @@ import { uniqueId } from 'lodash'
 function supplementPath (menu) {
   return menu.map(e => ({
     ...e,
-    path: e.path || uniqueId('d2-menu-empty-'), ...e.children ? {
+    path: e.path || uniqueId('d2-menu-empty-'),
+    ...e.children ? {
       children: supplementPath(e.children)
     } : {}
   }))
@@ -20,11 +21,13 @@ export const menuAside = supplementPath([{
   path: '/index',
   title: '总览',
   icon: 'home'
-}, {
+},
+{
   path: '/data-center',
   title: '数据中心',
   icon: 'database'
-}, {
+},
+{
   path: '',
   title: '模型训练',
   icon: 'film',
@@ -32,24 +35,28 @@ export const menuAside = supplementPath([{
     path: 'model-trainer',
     title: '训练管理',
     icon: 'film'
-  }, {
+  },
+  {
     path: '/develop-env',
     title: '开发环境',
     icon: 'film'
   }]
-}, {
+},
+{
   path: '/data',
   title: '模型仓库',
   icon: 'database'
-}, {
+},
+{
   path: '/data',
   title: '推理服务',
   icon: 'database'
 }, {
-  path: '/data',
+  path: '/image',
   title: '镜像管理',
   icon: 'database'
-}, {
+},
+{
   path: '/data',
   title: '零代码开发',
   icon: 'database'
